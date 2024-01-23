@@ -1,0 +1,16 @@
+# Vim swap files.
+*.swp
+*.swo
+# Object files.
+*.o
+# gcc precompiled headers.
+*.gch
+# Compiled programs for testing.
+*_mwe
+*_mwe[0-9]
+list_test
+test
+int_list_test
+list_test1
+list_test2
+int_list_array_test
