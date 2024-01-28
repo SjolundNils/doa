@@ -69,7 +69,7 @@ void test_stack_push_operation(void)
 
 void test_empty_always_returns_true(void)
 {
-	fprintf(stderr, "Testing if stack_isempty returns true on non-empty stack...\n");
+	fprintf(stderr, "Testing if stack_is_empty returns true on non-empty stack...\n");
 	stack s = stack_push(stack_empty(), 1);
 	if (stack_is_empty(s)) // If empty returns TRUE
 	{
@@ -81,7 +81,7 @@ void test_empty_always_returns_true(void)
 
 void test_empty_always_returns_false(void)
 {
-	fprintf(stderr, "Testing if stack_isempty returns false on empty stack...\n");
+	fprintf(stderr, "Testing if stack_is_empty returns false on empty stack...\n");
 	stack s = stack_empty();
 	if (!stack_is_empty(s)) // If is_empty returns FALSE
 	{
