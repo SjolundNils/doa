@@ -12,9 +12,46 @@ bool value_equal(int v1, int v2)
 	return v1 == v2;
 }
 
-void test_push(void)
+void decreasing_loop_test(void)
 {
-	fprintf(stderr, "Testing stack_push...\n");
+	fprintf(stderr, "Testing stack with decreasing values...\n");
+	
+	stack *s = stack_empty(NULL);
+	
+	int expected_value = n - 1;
+	
+	for (int i = 0; i < expected_value + 1; i++)
+	{
+		int *v = malloc(sizeof(*v));
+		*v = i;
+		s = stack_push(s, v);
+	}
+	
+	while (!stack_is_empty(s))
+	{
+		int *s_top = stack_top(s);
+		if (!value_equal(*s_top, expected_value))
+		{
+			fprintf(stderr, "FAIL: Expected %d, got %d\n", expected_value, *s_top);
+		}
+		
+		s = stack_pop(s);
+		expected_value--;
+	}
+	
+	//Free memory and kill stack
+	while (!stack_is_empty(s))
+	{
+		int *v = stack_top(s);
+		s = stack_pop(s);
+		free(v);
+	}
+	stack_kill(s);
+}
+
+void increasing_loop_test(void)
+{
+	fprintf(stderr, "Testing stack with increasing values...\n");
 
 	stack *s = stack_empty(NULL);
 
@@ -25,13 +62,14 @@ void test_push(void)
 		s = stack_push(s, v);
 
 		int *s_top = stack_top(s);
-		if (*s_top != expected_value)
+		if (!value_equal(*s_top, expected_value))
 		{
-			fprintf(stderr, "FAIL: expected %d, got %d", *s_top, expected_value);
+			fprintf(stderr, "FAIL: expected %d, got %d", expected_value, *s_top);
 			exit(EXIT_FAILURE);
 		}
 	}
 
+	//Free memory and kill stack
 	while (!stack_is_empty(s))
 	{
 		int *v = stack_top(s);
@@ -41,9 +79,9 @@ void test_push(void)
 	stack_kill(s);
 }
 
-void test_is_empty_one_element(void)
+void is_empty_true_test(void)
 {
-	fprintf(stderr, "Testing if empty always returns true...\n");
+	fprintf(stderr, "Testing if is_empty returns true on non-empty stack...\n");
 	int *v = malloc(sizeof(*v));
 	*v = 1;
 
@@ -55,6 +93,7 @@ void test_is_empty_one_element(void)
 		exit(EXIT_FAILURE);
 	}
 
+	//Free memory and kill stack
 	while (!stack_is_empty(s))
 	{
 		int *v = stack_top(s);
@@ -64,19 +103,22 @@ void test_is_empty_one_element(void)
 	stack_kill(s);
 }
 
-void test_empty_returns_false(void)
+void is_empty_false_test(void)
 {
-	fprintf(stderr, "Testing if stack_is_empty returns false on empty stack...\n");
+	fprintf(stderr, "Testing if is_empty returns false on empty stack...\n");
 	stack *s = stack_empty(NULL);
+	
 	if (!stack_is_empty(s)) // If is_empty returns FALSE
 	{
 		fprintf(stderr, "FAILED: Expected TRUE, got %s\n", stack_is_empty(s) ? "TRUE" : "FALSE");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
+
+	//Free memory and kill stack
 	stack_kill(s);
 }
 
-void test_empty_one_elemet()
+void empty_test()
 {
 	fprintf(stderr, "Testing stack_empty...\n");
 
@@ -87,24 +129,17 @@ void test_empty_one_elemet()
 		exit(EXIT_FAILURE);
 	}
 
-	while (!stack_is_empty(s))
-	{
-		int *v = stack_top(s);
-		s = stack_pop(s);
-		free(v);
-	}
+	//Free memory and kill stack
 	stack_kill(s);
 }
 
 void run_stack_tests(void)
 {
-	test_empty_returns_false();
-	test_empty_one_elemet();
-	test_push();
-	// test_empty_always_returns_true();
-	// test_stack_push_operation();
-	// test_stack_top_operation();
-	// test_stack_pop_operation();
+	empty_test();
+	is_empty_false_test();
+	is_empty_true_test();
+	increasing_loop_test();
+	decreasing_loop_test();
 }
 
 int main()
