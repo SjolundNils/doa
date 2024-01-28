@@ -35,6 +35,7 @@ void decreasing_loop_test(void)
 			fprintf(stderr, "FAIL: Expected %d, got %d\n", expected_value, *s_top);
 		}
 		
+		free(s_top);
 		s = stack_pop(s);
 		expected_value--;
 	}
@@ -73,8 +74,8 @@ void increasing_loop_test(void)
 	while (!stack_is_empty(s))
 	{
 		int *v = stack_top(s);
-		s = stack_pop(s);
 		free(v);
+		s = stack_pop(s);
 	}
 	stack_kill(s);
 }
