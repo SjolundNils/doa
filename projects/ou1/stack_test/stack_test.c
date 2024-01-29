@@ -1,3 +1,6 @@
+
+//SKRIV FUNKTION FÖR ATT AV-ALLOKERA MINNE :))
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -11,6 +14,18 @@ bool value_equal(int v1, int v2)
 {
 	return v1 == v2;
 }
+
+void free_stack(stack *s) 
+{
+	while(!stack_is_empty(s))
+	{
+		int *v = stack_top(s);
+		free(v);
+		s = stack_pop(s);
+	}
+	stack_kill(s);
+}
+
 
 void decreasing_loop_test(void)
 {
@@ -40,15 +55,9 @@ void decreasing_loop_test(void)
 		expected_value--;
 	}
 	
-	//Free memory and kill stack
-	while (!stack_is_empty(s))
-	{
-		int *v = stack_top(s);
-		s = stack_pop(s);
-		free(v);
-	}
-	stack_kill(s);
+	free_stack(s);
 }
+
 
 void increasing_loop_test(void)
 {
@@ -70,15 +79,9 @@ void increasing_loop_test(void)
 		}
 	}
 
-	//Free memory and kill stack
-	while (!stack_is_empty(s))
-	{
-		int *v = stack_top(s);
-		free(v);
-		s = stack_pop(s);
-	}
-	stack_kill(s);
+	free_stack(s);
 }
+
 
 void is_empty_true_test(void)
 {
@@ -94,15 +97,9 @@ void is_empty_true_test(void)
 		exit(EXIT_FAILURE);
 	}
 
-	//Free memory and kill stack
-	while (!stack_is_empty(s))
-	{
-		int *v = stack_top(s);
-		s = stack_pop(s);
-		free(v);
-	}
-	stack_kill(s);
+	free_stack(s);
 }
+
 
 void is_empty_false_test(void)
 {
@@ -115,9 +112,9 @@ void is_empty_false_test(void)
 		exit(EXIT_FAILURE);
 	}
 
-	//Free memory and kill stack
-	stack_kill(s);
+	free_stack(s);
 }
+
 
 void empty_test()
 {
@@ -130,9 +127,9 @@ void empty_test()
 		exit(EXIT_FAILURE);
 	}
 
-	//Free memory and kill stack
-	stack_kill(s);
+	free_stack(s);
 }
+
 
 void run_stack_tests(void)
 {
@@ -142,6 +139,7 @@ void run_stack_tests(void)
 	increasing_loop_test();
 	decreasing_loop_test();
 }
+
 
 int main()
 {
