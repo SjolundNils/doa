@@ -3,12 +3,28 @@
 #include <stdbool.h>
 #include <stack.h>
 #define n 5
+/*
+ * Test program for the stack implementation in stack.c
+ * 
+ * Author: Nils Sjölund (id23nsd@cs.umu.se)
+ * 
+ * Version information:
+ * 	2023-01-29 v1.0. First public version
+*/
 
+/*
+ * Function to compare the valies stored in the stack. 
+ */
 
 bool value_equal(int v1, int v2)
 {
 	return v1 == v2;
 }
+
+/*
+ * Function to de-allocate memory of elements stored in the stack.
+ * @s: Stack to empty and de-allocate
+ */
 
 void free_stack(stack *s) 
 {
@@ -21,7 +37,12 @@ void free_stack(stack *s)
 	stack_kill(s);
 }
 
-
+/*
+ * decreasing_loop_test() - Test a filled stack by comparing an 
+ * expected value with the top value, using stack_pop, after using pop() on the stack
+ * 
+ * Preconditions: stack_empty() works.
+ */
 void decreasing_loop_test(void)
 {
 	fprintf(stderr, "Testing stack with decreasing values...\n");
@@ -55,6 +76,13 @@ void decreasing_loop_test(void)
 }
 
 
+/*
+ * increasing_loop_test() - Test a stack by filling it using stack_push() 
+ * and simultaneously comparing the expected value with the top value, 
+ * using stack_top.
+ * 
+ * Preconditions: stack_empty() works.
+ */
 void increasing_loop_test(void)
 {
 	fprintf(stderr, "Testing stack with increasing values...\n");
@@ -78,7 +106,12 @@ void increasing_loop_test(void)
 	free_stack(s);
 }
 
-
+/*
+ * is_empty_returns_true_test() - Test if stack_is_empty returns TRUE
+ * on a non-empty stack.
+ * 
+ * Preconditions: stack_empty() works.
+ */
 void is_empty_true_test(void)
 {
 	fprintf(stderr, "Testing if is_empty returns true on non-empty stack...\n");
@@ -96,7 +129,12 @@ void is_empty_true_test(void)
 	free_stack(s);
 }
 
-
+/*
+ * is_empty_returns_true_test() - Test if stack_is_empty returns FALSE
+ * on a empty stack.
+ * 
+ * Preconditions: stack_empty() works.
+ */
 void is_empty_false_test(void)
 {
 	fprintf(stderr, "Testing if is_empty returns false on empty stack...\n");
@@ -111,7 +149,10 @@ void is_empty_false_test(void)
 	free_stack(s);
 }
 
-
+/*
+ * empty_test() - Test that the stack_empty() function returns a non-null pointer.
+ * Preconditions: None.
+ */
 void empty_test()
 {
 	fprintf(stderr, "Testing stack_empty...\n");
@@ -126,7 +167,9 @@ void empty_test()
 	free_stack(s);
 }
 
-
+/*
+ * Function to run all tests. 
+ */
 void run_stack_tests(void)
 {
 	empty_test();
