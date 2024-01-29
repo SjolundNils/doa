@@ -1,12 +1,7 @@
-
-//SKRIV FUNKTION FÖR ATT AV-ALLOKERA MINNE :))
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-
 #include <stack.h>
-
 #define n 5
 
 
@@ -35,7 +30,7 @@ void decreasing_loop_test(void)
 	
 	int expected_value = n - 1;
 	
-	for (int i = 0; i < expected_value + 1; i++)
+	for (int i = 0; i < n; i++)
 	{
 		int *v = malloc(sizeof(*v));
 		*v = i;
@@ -48,6 +43,7 @@ void decreasing_loop_test(void)
 		if (!value_equal(*s_top, expected_value))
 		{
 			fprintf(stderr, "FAIL: Expected %d, got %d\n", expected_value, *s_top);
+			exit(EXIT_FAILURE);
 		}
 		
 		free(s_top);
