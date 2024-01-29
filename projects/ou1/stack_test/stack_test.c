@@ -13,9 +13,8 @@
 */
 
 /*
- * Function to compare the valies stored in the stack. 
+ * Function to compare the values stored in the stack. 
  */
-
 bool value_equal(int v1, int v2)
 {
 	return v1 == v2;
@@ -25,7 +24,6 @@ bool value_equal(int v1, int v2)
  * Function to de-allocate memory of elements stored in the stack.
  * @s: Stack to empty and de-allocate
  */
-
 void free_stack(stack *s) 
 {
 	while(!stack_is_empty(s))
@@ -107,7 +105,7 @@ void increasing_loop_test(void)
 }
 
 /*
- * is_empty_returns_true_test() - Test if stack_is_empty returns TRUE
+ * is_empty_true_test() - Test if stack_is_empty returns TRUE
  * on a non-empty stack.
  * 
  * Preconditions: stack_empty() works.
@@ -130,7 +128,7 @@ void is_empty_true_test(void)
 }
 
 /*
- * is_empty_returns_true_test() - Test if stack_is_empty returns FALSE
+ * is_empty_false_test() - Test if stack_is_empty returns FALSE
  * on a empty stack.
  * 
  * Preconditions: stack_empty() works.
@@ -155,7 +153,7 @@ void is_empty_false_test(void)
  */
 void empty_test()
 {
-	fprintf(stderr, "Testing stack_empty...\n");
+	fprintf(stderr, "Testing if stack_empty returns NULL pointer...\n");
 
 	stack *s = stack_empty(NULL);
 	if (s == NULL)

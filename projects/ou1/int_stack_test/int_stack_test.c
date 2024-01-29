@@ -3,14 +3,29 @@
 #include <stdbool.h>
 #include <int_stack.h>
 #define n 5
+/*
+ * Test program for the stack implementation in stack.c
+ * 
+ * Author: Nils Sjölund (id23nsd@cs.umu.se)
+ * 
+ * Version information:
+ * 	2023-01-29 v1.0. First public version
+*/
 
-
+/*
+ * Function to compare the values stored in the stack. 
+ */
 bool value_equal(int v1, int v2)
 {
 	return v1 == v2;
 }
 
-
+/*
+ * decreasing_loop_test() - Test a filled stack by comparing an 
+ * expected value with the top value, using stack_pop, after using pop() on the stack
+ * 
+ * Preconditions: stack_empty() works.
+ */
 void decreasing_loop_test(void)
 {
 	fprintf(stderr, "Testing stack with decreasing values...\n");
@@ -37,7 +52,13 @@ void decreasing_loop_test(void)
 	}
 }
 
-
+/*
+ * increasing_loop_test() - Test a stack by filling it using stack_push() 
+ * and simultaneously comparing the expected value with the top value, 
+ * using stack_top.
+ * 
+ * Preconditions: stack_empty() works.
+ */
 void increasing_loop_test(void)
 {
 	fprintf(stderr, "Testing stack with increasing values...\n");
@@ -56,6 +77,12 @@ void increasing_loop_test(void)
 	}
 }
 
+/*
+ * is_empty_returns_true_test() - Test if stack_is_empty returns TRUE
+ * on a non-empty stack.
+ * 
+ * Preconditions: stack_empty() works.
+ */
 void is_empty_true_test(void)
 {
 	fprintf(stderr, "Testing if is_empty returns true on non-empty stack...\n");
@@ -68,6 +95,12 @@ void is_empty_true_test(void)
 	}
 }
 
+/*
+ * is_empty_false_test() - Test if stack_is_empty returns FALSE
+ * on a empty stack.
+ * 
+ * Preconditions: stack_empty() works.
+ */
 void is_empty_false_test(void)
 {
 	fprintf(stderr, "Testing if is_empty returns false on empty stack...\n");
@@ -80,6 +113,9 @@ void is_empty_false_test(void)
 	}
 }
 
+/*
+ * Function to run all tests. 
+ */
 void run_stack_tests(void)
 {
 	is_empty_false_test();
