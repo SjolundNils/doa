@@ -96,7 +96,7 @@ void increasing_loop_test(void)
 		int *s_top = stack_top(s);
 		if (!value_equal(*s_top, expected_value))
 		{
-			fprintf(stderr, "FAIL: expected %d, got %d", expected_value, *s_top);
+			fprintf(stderr, "FAIL: expected %d, got %d\n", expected_value, *s_top);
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -120,7 +120,7 @@ void is_empty_true_test(void)
 
 	if (stack_is_empty(s)) // If is_empty returns TRUE
 	{
-		fprintf(stderr, "FAILED: Expected FALSE, got %s\n", stack_is_empty(s) ? "TRUE" : "FALSE");
+		fprintf(stderr, "FAIL: Expected FALSE, got %s\n", stack_is_empty(s) ? "TRUE" : "FALSE");
 		exit(EXIT_FAILURE);
 	}
 
@@ -140,7 +140,7 @@ void is_empty_false_test(void)
 	
 	if (!stack_is_empty(s)) // If is_empty returns FALSE
 	{
-		fprintf(stderr, "FAILED: Expected TRUE, got %s\n", stack_is_empty(s) ? "TRUE" : "FALSE");
+		fprintf(stderr, "FAIL: Expected TRUE, got %s\n", stack_is_empty(s) ? "TRUE" : "FALSE");
 		exit(EXIT_FAILURE);
 	}
 
