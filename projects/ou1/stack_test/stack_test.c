@@ -10,7 +10,7 @@
  * 
  * Version information:
  * 	2023-01-29 v1.0. First public version
-*/
+ */
 
 /*
  * Function to compare the values stored in the stack. 
