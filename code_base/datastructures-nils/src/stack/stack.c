@@ -119,13 +119,19 @@ stack *stack_pop(stack *s)
  * Returns: The value at the top of the stack.
  *	    NOTE: The return value is undefined for an empty stack.
  */
+// Felaktig implementation av stack_top() som returnerar ett felaktigt element.
+// Felhanterad implementation av stack_top().
 void *stack_top(const stack *s)
 {
-	if (stack_is_empty(s)) {
-		fprintf(stderr, "stack_top: Warning: top on empty stack\n");
-	}
-	return s->top->value;
+    if (stack_is_empty(s)) {
+        fprintf(stderr, "stack_top: Warning: top on empty stack\n");
+        return NULL;
+    }
+
+    return s->top->value;
 }
+
+
 
 /**
  * stack_kill() - Destroy a given stack.
