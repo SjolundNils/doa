@@ -9,7 +9,7 @@
  * Author: Nils Sjölund (id23nsd@cs.umu.se)
  * 
  * Version information:
- * 	2023-01-29 v1.0. First public version
+ * 	2023-02-01 v1.0. First public version
  */
 
 /*
@@ -53,7 +53,7 @@ void decreasing_loop_test(void)
 		s = stack_pop(s);
 		expected_value--;
 	}
-	stack_kill(s);	
+	stack_kill(s);
 }
 
 
@@ -103,7 +103,7 @@ void is_empty_true_test(void)
 
 	if (stack_is_empty(s)) // If is_empty returns TRUE
 	{
-		fprintf(stderr, "FAIL: Expected FALSE, got %s\n\n", stack_is_empty(s) ? "TRUE" : "FALSE");
+		fprintf(stderr, "FAIL: Expected FALSE, got TRUE\n\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -123,7 +123,7 @@ void is_empty_false_test(void)
 	
 	if (!stack_is_empty(s)) // If is_empty returns FALSE
 	{
-		fprintf(stderr, "FAIL: Expected TRUE, got %s\n\n", stack_is_empty(s) ? "TRUE" : "FALSE");
+		fprintf(stderr, "FAIL: Expected TRUE, got FALSE\n\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -144,7 +144,6 @@ void empty_test()
 		fprintf(stderr, "FAIL: expected non-NULL, got NULL\n\n");
 		exit(EXIT_FAILURE);
 	}
-
 	stack_kill(s);
 }
 

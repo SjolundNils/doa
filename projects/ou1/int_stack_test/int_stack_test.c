@@ -9,7 +9,7 @@
  * Author: Nils Sjölund (id23nsd@cs.umu.se)
  * 
  * Version information:
- * 	2023-01-29 v1.0. First public version
+ * 	2023-02-01 v1.0. First public version
 */
 
 /*

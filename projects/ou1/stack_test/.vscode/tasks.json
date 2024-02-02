@@ -10,7 +10,7 @@
 				"-Wall",
                 "-g",
                 "${file}",
-				"~/edu/doa/code_base/datastructures-nils/src/stack/stack.c",
+				"~/edu/doa/code_base/current/src/stack/stack.c",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}",
 				"-I",
