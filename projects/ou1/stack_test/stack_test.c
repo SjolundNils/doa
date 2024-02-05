@@ -10,6 +10,7 @@
  * 
  * Version information:
  * 	2023-02-01 v1.0. First public version
+ * 	2023-02-05 v1.1. Fixed comments
  */
 
 /*
@@ -22,9 +23,9 @@ bool value_equal(int v1, int v2)
 
 /*
  * decreasing_loop_test() - Test a filled stack by comparing an 
- * expected value with the top value, using stack_pop, after using pop() on the stack
+ * expected value with the top value, using stack_top(), after using stack_pop() on the stack
  * 
- * Preconditions: stack_empty() works.
+ * Preconditions: stack_empty(), stack_is_empty() works.
  */
 void decreasing_loop_test(void)
 {
@@ -58,7 +59,7 @@ void decreasing_loop_test(void)
 
 
 /*
- * increasing_loop_test() - Test a stack by filling it using stack_push() 
+ * increasing_loop_test() - Test a stack by filling it, using stack_push() 
  * and simultaneously comparing the expected value with the top value, 
  * using stack_top.
  * 
@@ -112,7 +113,7 @@ void is_empty_true_test(void)
 
 /*
  * is_empty_false_test() - Test if stack_is_empty returns FALSE
- * on a empty stack.
+ * on an empty stack.
  * 
  * Preconditions: stack_empty() works.
  */
@@ -131,7 +132,7 @@ void is_empty_false_test(void)
 }
 
 /*
- * empty_test() - Test that the stack_empty() function returns a non-null pointer.
+ * empty_test() - Test if stack_empty() returns a non-null pointer.
  * Preconditions: None.
  */
 void empty_test()
