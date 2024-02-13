@@ -116,6 +116,8 @@ void is_empty_false_test(void)
 /*
  * Function to run all tests. 
  */
+sdajsdksajdlsajdlksajdaslkd
+asdjsadksa;
 void run_stack_tests(void)
 {
 	is_empty_false_test();

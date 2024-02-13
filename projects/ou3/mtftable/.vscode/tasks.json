@@ -6,13 +6,10 @@
             "command": "/usr/bin/gcc",
             "args": [
                 "-fdiagnostics-color=always",
-				"-std=c99",
-				"-Wall",
                 "-g",
+				"~/edu/doa/code_base/current/src/dlist/dlist.c",
                 "${file}",
-				"~/edu/doa/code_base/current/src/stack/stack.c",
-                //"~/edu/doa/projects/ou1/pop_rms_2nd/stack.c",
-				"-o",
+                "-o",
                 "${fileDirname}/${fileBasenameNoExtension}",
 				"-I",
 				"~/edu/doa/code_base/current/include"

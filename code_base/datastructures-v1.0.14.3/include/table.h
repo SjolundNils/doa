@@ -69,7 +69,7 @@ bool table_is_empty(const table *t);
  * check if key is a duplicate. table_lookup() will return the latest
  * added value for a duplicate key. table_remove() will remove all
  * duplicates for a given key.
- *
+ * 
  * Returns: Nothing.
  */
 void table_insert(table *t, void *key, void *value);

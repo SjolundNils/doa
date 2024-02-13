@@ -18,7 +18,8 @@
  *
  * Version information:
  *   v1.0 2018-02-06: First public version.
- *   v1.1 2019-03-04: Bugfix in table_remove.
+ *   v1.1 2019-02-21: Second version without dlist/memfreehandler.
+ *   v1.2 2019-03-04: Bugfix in table_remove.
  */
 
 // ===========INTERNAL DATA TYPES============
@@ -54,7 +55,7 @@ table *table_empty(compare_function *key_cmp_func,
 	// Allocate the table header.
 	table *t = calloc(1, sizeof(table));
 	// Create the list to hold the table_entry-ies.
-	t->entries = dlist_empty(free);
+	t->entries = dlist_empty(NULL);
 	// Store the key compare function and key/value free functions.
 	t->key_cmp_func = key_cmp_func;
 	t->key_free_func = key_free_func;
@@ -120,7 +121,13 @@ void *table_lookup(const table *t, const void *key)
 		// Check if the entry key matches the search key.
 		if (t->key_cmp_func(entry->key, key) == 0) {
 			// If yes, return the corresponding value pointer.
-			return entry->value;
+
+			/*-------------*/
+			dlist_remove(t->entries, pos); //"Disconnect" the entry from t->entries
+        	pos = dlist_insert(t->entries, entry, dlist_first(t->entries)); //Insert the entry to the front of the list
+            return entry->value; //Return the value of the entry
+			/*-------------*/
+
 		}
 		// Continue with the next position.
 		pos = dlist_next(t->entries, pos);
@@ -185,14 +192,16 @@ void table_remove(table *t, const void *key)
 					// of this pointer to the very end.
 					deferred_ptr = entry->key;
 				} else {
-					t->key_free_func(entry->key);
-				}
+				t->key_free_func(entry->key);
+			}
 			}
 			if (t->value_free_func != NULL) {
 				t->value_free_func(entry->value);
 			}
 			// Remove the list element itself.
 			pos = dlist_remove(t->entries, pos);
+			// Deallocate the table entry structure.
+			free(entry);
 		} else {
 			// No match, move on to next element in the list.
 			pos = dlist_next(t->entries, pos);
@@ -232,6 +241,8 @@ void table_kill(table *t)
 		}
 		// Move on to next element.
 		pos = dlist_next(t->entries, pos);
+		// Deallocate the table entry structure.
+		free(entry);
 	}
 
 	// Kill what's left of the list...
@@ -240,6 +251,10 @@ void table_kill(table *t)
 	free(t);
 }
 
+
+
+
+
 /**
  * table_print() - Print the given table.
  * @t: Table to print.
@@ -247,7 +262,7 @@ void table_kill(table *t)
  *
  * Iterates over the key/value pairs in the table and prints them.
  * Will print all stored elements, including duplicates.
- * 
+ *
  * Returns: Nothing.
  */
 void table_print(const table *t, inspect_callback_pair print_func)
@@ -261,4 +276,69 @@ void table_print(const table *t, inspect_callback_pair print_func)
 		print_func(e->key, e->value);
 		pos = dlist_next(t->entries, pos);
 	}
+}
+
+
+
+
+
+///////////////////////////HÄR BÖRJAR VÅR KOD////////////////////////////////////
+
+
+
+
+///
+void struct_print_func(const void *cell) {
+    const struct table_entry *entry = (const struct table_entry *)cell;
+    printf("[%d].[%d]", *(int*)(entry->key), *(int*)(entry->value));
+}
+
+///
+
+/**
+ * int_compare() - Compare to integers via pointers.
+ * @ip1, @ip2: Pointers to integers to be compared.
+ *
+ * Compares the integers that ip1 and ip2 points to.
+ *
+ * Returns: 0 if the integers are equal, negative if the first
+ * argument is smaller, positive if the first argument is larger.
+ */
+int int_compare(const void *ip1,const void *ip2)
+{
+        const int *n1=ip1;
+        const int *n2=ip2;
+        return (*n1 - *n2);
+}
+
+int main(void)
+{
+    table *t = table_empty(int_compare, free, free);
+    
+    for (int i = 1; i <= 5; i++)
+    {
+        int *v = malloc(sizeof(*v));
+        *v = i;
+        table_insert(t, v, v);
+    }
+
+    printf("Listan från början\n");
+    dlist_print(t->entries, struct_print_func);
+
+    int *v = malloc(sizeof(*v));
+    *v = 3;
+
+    printf("\nLOOKUP: ");
+    struct table_entry *lookup_entry = table_lookup(t, v);
+    if (lookup_entry != NULL) {
+		int *lookup_value = lookup_entry->value;
+		int *lookup_key = lookup_entry->key;
+        printf("[%d].[%d]\n\n", lookup_key, lookup_value);
+    } else {
+        printf("Inget värde hittades för nyckeln.\n\n");
+    }
+	printf("Listan efter LOOKUP:\n");
+    dlist_print(t->entries, struct_print_func);
+
+    printf("\n\n\n");
 }
