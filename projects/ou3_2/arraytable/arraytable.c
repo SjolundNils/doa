@@ -12,17 +12,17 @@
  * algorithms" courses at the Department of Computing Science, Umea
  * University.
  *
- * Duplicates are handled by inspect and remove.
+ * Duplicates are handled by insert.
  *
- * Authors: Niclas Borlin (niclas@cs.umu.se)
- *	    Adam Dahlgren Lindstrom (dali@cs.umu.se)
+ * Authors: 
+ *	    Nils Sjölund (id23nsd@cs.umu.se)
+ *		Sebastian Gabrielsson (id23nsd@cs.umu.se)
  *
- * Based on earlier code by: Johan Eliasson (johane@cs.umu.se).
+ * Based on earlier code by: Niclas Borlin (niclas@cs.umu.se)
  *
  * Version information:
- *   v1.0 2018-02-06: First public version.
- *   v1.1 2019-02-21: Second version without dlist/memfreehandler.
- *   v1.2 2019-03-04: Bugfix in table_remove.
+ *   v1.0 2024-02-14 first public version
+ *
  */
 
 // ===========INTERNAL DATA TYPES============
@@ -58,16 +58,21 @@ table *table_empty(compare_function *key_cmp_func,
 				   free_function key_free_func,
 				   free_function value_free_func)
 {
-	// printf("RUNNING TABLE_EMPTY\n");
+	
 	//  Allocate the table header.
 	table *t = calloc(1, sizeof(struct table));
-	// Create the list to hold the table_entry-ies.
+	
 
 	// Store the key compare function and key/value free functions.
 	t->key_cmp_func = key_cmp_func;
 	t->key_free_func = key_free_func;
 	t->value_free_func = value_free_func;
+
+	//Set the table-size to 0 
+	//(used in table_is_empty() and as an index in the array)
 	t->size = 0;
+
+	// Create the array to hold the table_entry-ies.
 	t->entries = array_1d_create(0, MAXSIZE - 1, NULL);
 	return t;
 }
@@ -76,11 +81,10 @@ table *table_empty(compare_function *key_cmp_func,
  * table_is_empty() - Check if a table is empty.
  * @table: Table to check.
  *
- * Returns: True if table contains no key/value pairs, false otherwise.
+ * Returns: True if the table-size is 0, false otherwise.
  */
 bool table_is_empty(const table *t)
 {
-	// printf("RUNNING TABLE_IS_EMPTY\n");
 	return (t->size == 0);
 }
 
@@ -90,36 +94,41 @@ bool table_is_empty(const table *t)
  * @key: A pointer to the key value.
  * @value: A pointer to the value value.
  *
- * Insert the key/value pair into the table. No test is performed to
- * check if key is a duplicate. table_lookup() will return the latest
- * added value for a duplicate key. table_remove() will remove all
- * duplicates for a given key.
+ * Insert the key/value pair into the table. Start by running a test to
+ * check if key is a duplicate. 
+ * 
+ * If match a is found, Deallocate the 
+ * duplicate and insert a new key/value pair with a new value  
+ * 
+ * If no match is found, insert the key/value pair at the 
+ * "end" of the array and increase the table size by 1.
  *
  * Returns: Nothing.
  */
 void table_insert(table *t, void *key, void *value)
 {
-	// printf("RUNNING TABLE_INSERT\n");
-	//  Allocate the key/value structure.
+	
+	//  Iterate trough the table and search for duplicate.
 	for (int i = 0; i < t->size; i++)
 	{
 		struct table_entry *inspection_entry = array_1d_inspect_value(t->entries, i);
-		if (t->key_cmp_func(inspection_entry->key, key) == 0)
+		if (t->key_cmp_func(inspection_entry->key, key) == 0) //If a duplicate is found
 		{
 			if (t->key_free_func != NULL)
 			{
-				t->key_free_func(inspection_entry->key); //Free the key since the new key is already allocated.
+				t->key_free_func(inspection_entry->key); //Free the old key since the new key is already allocated.
 			}
 			if (t->value_free_func != NULL)
 			{
-				t->value_free_func(inspection_entry->value);
+				t->value_free_func(inspection_entry->value); //Free the "old" value
 			}
+			//Set the duplicate key/value pair to the inserted values
 			inspection_entry->value = value;
 			inspection_entry->key = key;
 			return;
 		}
 	}
-
+	//If no match is found, insert the entry to the "end" of the table and increase the table size
 	struct table_entry *entry = malloc(sizeof(struct table_entry));
 	entry->value = value;
 	entry->key = key;
@@ -133,12 +142,11 @@ void table_insert(table *t, void *key, void *value)
  * @key: Key to look up.
  *
  * Returns: The value corresponding to a given key, or NULL if the key
- * is not found in the table. If the table contains duplicate keys,
- * the value that was latest inserted will be returned.
+ * is not found in the table.
  */
 void *table_lookup(const table *t, const void *key)
 {
-	// printf("RUNNING TABLE_LOOKUP\n");
+	//Iterate trough the array and search for a match 
 	for (int i = 0; i < t->size; i++)
 	{
 		struct table_entry *entry = array_1d_inspect_value(t->entries, i);
@@ -163,11 +171,12 @@ void *table_lookup(const table *t, const void *key)
  */
 void table_remove(table *t, const void *key)
 {
-	// printf("RUNNING TABLE_REMOVE\n");
+	//Iterate trough the array and search for a match 
 	for (int i = 0; i < t->size; i++)
 	{
 		struct table_entry *inspection_entry = array_1d_inspect_value(t->entries, i);
-		if (inspection_entry != NULL && t->key_cmp_func(inspection_entry->key, key) == 0)
+		//If a match is found 
+		if (t->key_cmp_func(inspection_entry->key, key) == 0)
 		{
 			// Free key and/or value if given the authority to do so.
 			if (t->key_free_func != NULL)
@@ -179,11 +188,12 @@ void table_remove(table *t, const void *key)
 				t->value_free_func(inspection_entry->value);
 			}
 
+			//Free the matching entry and insert the last entry in its place
 			free(inspection_entry);
-			struct table_entry *final_entry = array_1d_inspect_value(t->entries, t->size - 1);
-			array_1d_set_value(t->entries, final_entry, i);
+			struct table_entry *last_entry = array_1d_inspect_value(t->entries, t->size - 1);
+			array_1d_set_value(t->entries, last_entry, i);
 			
-
+			//Decrease the table-size
 			t->size--;
 			return;
 		}
@@ -203,7 +213,6 @@ void table_remove(table *t, const void *key)
  */
 void table_kill(table *t)
 {
-	// printf("RUNNING TABLE_KILL\n");
 	//  Iterate over the list. Destroy all elements.
 	for (int i = 0; i < t->size; i++)
 	{
@@ -219,12 +228,14 @@ void table_kill(table *t)
 			{
 				t->value_free_func(entry->value);
 			}
+			//Free the entry-pointer itself
 			free(entry);
 		}
 	}
+	//Kill whats left of the array
 	array_1d_kill(t->entries);
+	//And free the table-header
 	free(t);
-	// printf("TABLE_KILL SUCCESSFULL\n");
 }
 
 /**
@@ -233,53 +244,16 @@ void table_kill(table *t)
  * @print_func: Function called for each key/value pair in the table.
  *
  * Iterates over the key/value pairs in the table and prints them.
- * Will print all stored elements, including duplicates.
  *
  * Returns: Nothing.
  */
 void table_print(const table *t, inspect_callback_pair print_func)
 {
-	// printf("RUNNING TABLE_PRINT");
+	//Iterate trough the table
 	for (int i = 0; i < t->size; i++)
 	{
 		struct table_entry *e = array_1d_inspect_value(t->entries, i);
 		// Call print_func
 		print_func(e->key, e->value);
 	}
-}
-
-/*--------------------------------------------------------------------------------*/
-/*--------------------------------------------------------------------------------*/
-/*--------------------------------------------------------------------------------*/
-
-void print_strings(const void *s1, const void *s2) {
-    const char *str1 = s1;
-    const char *str2 = s2;
-    printf("[%s].[%s] ", str1, str2);
-}
-
-
-int string_compare(const void *ip1,const void *ip2)
-{
-    const char *s1=ip1;
-    const char *s2=ip2;
-    return strcmp(s1,s2);
-}
-
-int main() {
-    table *t = table_empty(string_compare, free, free);
-	
-    char *value1 = malloc(strlen("Värde") + 1); // Allocate memory for the string "Värde"
-    char *key1 = malloc(strlen("Nyckel") + 1);  // Allocate memory for the string "Nyckel"
-
-    strcpy(value1, "Värde"); // Copy "Värde" to value1
-    strcpy(key1, "Nyckel");   // Copy "Nyckel" to key1
-
-    table_insert(t, key1, value1);
-	table_print(t, print_strings);
-
-    // Remember to free the memory you allocated
-    table_kill(t);
-
-    return 0;
 }
