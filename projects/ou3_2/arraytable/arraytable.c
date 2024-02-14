@@ -5,7 +5,7 @@
 #include <table.h>
 #include <string.h>
 
-#define MAXSIZE 40000
+#define MAXSIZE 80000
 
 /*
  * Implementation of a generic table for the "Datastructures and
@@ -108,18 +108,14 @@ void table_insert(table *t, void *key, void *value)
 		{
 			if (t->key_free_func != NULL)
 			{
-				t->key_free_func(inspection_entry->key);
+				t->key_free_func(inspection_entry->key); //Free the key since the new key is already allocated.
 			}
 			if (t->value_free_func != NULL)
 			{
 				t->value_free_func(inspection_entry->value);
 			}
-			free(inspection_entry);
-
-			struct table_entry *replacement_entry = malloc(sizeof(struct table_entry));
-			replacement_entry->value = value;
-			replacement_entry->key = key;
-			array_1d_set_value(t->entries, replacement_entry, t->size);
+			inspection_entry->value = value;
+			inspection_entry->key = key;
 			return;
 		}
 	}
@@ -127,13 +123,6 @@ void table_insert(table *t, void *key, void *value)
 	struct table_entry *entry = malloc(sizeof(struct table_entry));
 	entry->value = value;
 	entry->key = key;
-	// Check if memory allocation was successful
-	if (entry == NULL)
-	{
-		// Handle allocation failure
-		return;
-	}
-
 	array_1d_set_value(t->entries, entry, t->size);
 	t->size++;
 }
@@ -177,7 +166,6 @@ void table_remove(table *t, const void *key)
 	// printf("RUNNING TABLE_REMOVE\n");
 	for (int i = 0; i < t->size; i++)
 	{
-
 		struct table_entry *inspection_entry = array_1d_inspect_value(t->entries, i);
 		if (inspection_entry != NULL && t->key_cmp_func(inspection_entry->key, key) == 0)
 		{
@@ -194,6 +182,7 @@ void table_remove(table *t, const void *key)
 			free(inspection_entry);
 			struct table_entry *final_entry = array_1d_inspect_value(t->entries, t->size - 1);
 			array_1d_set_value(t->entries, final_entry, i);
+			
 
 			t->size--;
 			return;
@@ -257,4 +246,40 @@ void table_print(const table *t, inspect_callback_pair print_func)
 		// Call print_func
 		print_func(e->key, e->value);
 	}
+}
+
+/*--------------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------------*/
+
+void print_strings(const void *s1, const void *s2) {
+    const char *str1 = s1;
+    const char *str2 = s2;
+    printf("[%s].[%s] ", str1, str2);
+}
+
+
+int string_compare(const void *ip1,const void *ip2)
+{
+    const char *s1=ip1;
+    const char *s2=ip2;
+    return strcmp(s1,s2);
+}
+
+int main() {
+    table *t = table_empty(string_compare, free, free);
+	
+    char *value1 = malloc(strlen("Värde") + 1); // Allocate memory for the string "Värde"
+    char *key1 = malloc(strlen("Nyckel") + 1);  // Allocate memory for the string "Nyckel"
+
+    strcpy(value1, "Värde"); // Copy "Värde" to value1
+    strcpy(key1, "Nyckel");   // Copy "Nyckel" to key1
+
+    table_insert(t, key1, value1);
+	table_print(t, print_strings);
+
+    // Remember to free the memory you allocated
+    table_kill(t);
+
+    return 0;
 }
