@@ -323,7 +323,7 @@ void get_skewed_lookup_speed(table *t, int *keys, int n, bool machine_table)
 	if (machine_table) {
 		printf("%d, %d, %lu\n",5,n,end-start);
 	} else {
-		printf("%5d skewed lookups: " ,n);
+		printf("%5d skewed lookups                 : " ,n);
 		printf("%lu ms.\n" ,end-start);
 	}
 }
@@ -366,7 +366,6 @@ void test_isempty(){
         }
         printf("Isempty returns true directly after a table is created. - OK\n");
         table_kill(t);
-        printf("wazzup\n");
 }
 
 /* Tests if isempty returns false directly after a table is created
@@ -385,7 +384,6 @@ void test_insert_single_element(void)
         }
         printf("Isempty false if one element is inserted to table. - OK\n");
         table_kill(t);
-        printf("waddup\n");
 }
 
 /* Tests looking up the key key in a table table. Checks that lookup is
@@ -440,10 +438,9 @@ void test_lookup_single_element()
         char *value2;
 
         table_insert(t, key1, value1);
-        printf("niiiiilz\n");
+
         // Lookup a non-existent key
         value2 = (char *)table_lookup(t, "key2");
-        printf("zeeeboooo\n");
         if (value2!=NULL){
                 printf("Looked up non-existing key, table claims it does "
                        "exist.\n");
@@ -479,27 +476,14 @@ void test_insert_lookup_different_keys()
         char *value3 = copy_string("value3");
 
         table_insert(t, key1, value1);
-         printf("insert 1 works\n");
         test_lookup_existing_key(t, "key1", "value1");
-        printf("lookup 1 works\n");
-       
         table_insert(t, key2, value2);
-        printf("insert 2 works\n");
         test_lookup_existing_key(t, "key1", "value1");
-        printf("lookup 2 works\n");
-       
         test_lookup_existing_key(t, "key2", "value2");
-        printf("lookup 3 works\n");
         table_insert(t, key3, value3);
-        printf("insert 3 works\n");
-       
         test_lookup_existing_key(t, "key1", "value1");
-        printf("lookup 4 works\n");
-       
         test_lookup_existing_key(t, "key2", "value2");
-        printf("lookup 5 works\n");
         test_lookup_existing_key(t, "key3", "value3");
-        printf("yay3\n");
 
         printf("Looking up three existing keys-value pairs in a table "
                "with three elements - OK\n");
@@ -537,13 +521,10 @@ void test_insert_lookup_same_keys()
 
         table_insert(t, key1, value1);
         test_lookup_existing_key(t, key, value1);
-        printf("oooo1\n");
         table_insert(t, key2, value2);
         test_lookup_existing_key(t, key, value2);
-        printf("oooo2\n");
         table_insert(t, key3, value3);
         test_lookup_existing_key(t, key, value3);
-        printf("oooo3\n");
 
         printf("Looking up existing key and value after inserting the same "
                "key three times with different values - OK\n");
@@ -608,13 +589,9 @@ void test_remove_elements_different_keys()
                        "it is empty\n");
                 exit(EXIT_FAILURE);
         }
-		printf("\n\nHELLO\n\n");
         test_lookup_missing_key(t, "key1");
-		printf("\ntest_lookup_missing_key: PASSED\n\n");
         test_lookup_existing_key(t, "key2", "value2");
-		printf("\ntest_lookup_existing_key: PASSED\n\n");
         test_lookup_existing_key(t, "key3", "value3");
-		printf("\ntest_lookup_existing_key2: PASSED\n\n");
 
         table_remove(t, key2);
         if (table_is_empty(t)){
@@ -709,17 +686,15 @@ void test_remove_elements_same_keys()
  */
 void correctness_test()
 {
+	
         test_isempty();
         test_insert_single_element();
         test_lookup_single_element();
         test_insert_lookup_different_keys();
         test_insert_lookup_same_keys();
         test_remove_single_element();
-		printf("\n\ntest_remove_elements_different_keys()\n\n");
         test_remove_elements_different_keys();
-		printf("\n\nPassed remove elements grejen\n\n");
         test_remove_elements_same_keys();
-		
 }
 
 /* Tests the speed of a table using random numbers. First a number of
@@ -812,7 +787,7 @@ int main(int argc,char **argv)
         }
 	if (do_test) {
 		printf("Testing...\n");
-		correctness_test();
+		correctness_test();		
 		printf("All correctness tests succeeded!\n\n");
 	}
         /*getchar();*/
