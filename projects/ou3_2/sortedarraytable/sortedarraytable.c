@@ -110,6 +110,7 @@ void table_insert(table *t, void *key, void *value)
 	for (int i = 0; i < t->size; i++)
 	{
 		struct table_entry *inspection_entry = array_1d_inspect_value(t->entries, i);
+		while (t->key_cmp_func(inspection_entry->key, key) == 0)
 		if (t->key_cmp_func(inspection_entry->key, key) == 0) //If a duplicate is found
 		{
 			if (t->key_free_func != NULL)

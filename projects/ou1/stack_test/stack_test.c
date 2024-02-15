@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stack.h>
-#define SIZE 5
+#define SIZE 1000
 /*
  * Test program for the stack implementation in stack.c
  * 

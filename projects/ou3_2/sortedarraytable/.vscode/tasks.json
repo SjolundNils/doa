@@ -6,13 +6,13 @@
             "command": "/usr/bin/gcc",
             "args": [
                 "-fdiagnostics-color=always",
+                "-g",
 				"-std=c99",
 				"-Wall",
-                "-g",
-                "${file}",
-				//"~/edu/doa/code_base/current/src/stack/stack.c",
-                "~/edu/doa/projects/ou1/broken_stack/stack.c",
-				"-o",
+				"~/edu/doa/code_base/current/src/array_1d/array_1d.c",
+                "${workspaceFolder}/sortedarraytable.c",
+				"${file}",
+                "-o",
                 "${fileDirname}/${fileBasenameNoExtension}",
 				"-I",
 				"~/edu/doa/code_base/current/include"
