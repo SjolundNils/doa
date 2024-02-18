@@ -119,14 +119,12 @@ void *table_lookup(const table *t, const void *key)
 		struct table_entry *entry = dlist_inspect(t->entries, pos);
 		// Check if the entry key matches the search key.
 		if (t->key_cmp_func(entry->key, key) == 0) {
-			// If yes, return the corresponding value pointer.
 
 			/*-------------*/
 			dlist_remove(t->entries, pos); //"Disconnect" the entry from t->entries
-        	pos = dlist_insert(t->entries, entry, dlist_first(t->entries)); //Insert the entry to the front of the list
+        	dlist_insert(t->entries, entry, dlist_first(t->entries)); //Insert the entry to the front of the list
             return entry->value; //Return the value of the entry
 			/*-------------*/
-
 		}
 		// Continue with the next position.
 		pos = dlist_next(t->entries, pos);

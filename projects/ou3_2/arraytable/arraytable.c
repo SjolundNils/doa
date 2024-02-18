@@ -14,7 +14,7 @@
  *
  * Duplicates are handled by insert.
  *
- * Authors: 
+ * Authors:
  *	Nils Sjölund (id23nsd@cs.umu.se)
  * 	Sebastian Gabrielsson (id23sgn@cs.umu.se)
  *
@@ -60,14 +60,13 @@ table *table_empty(compare_function *key_cmp_func,
 {
 	//  Allocate the table header.
 	table *t = calloc(1, sizeof(struct table));
-	
 
 	// Store the key compare function and key/value free functions.
 	t->key_cmp_func = key_cmp_func;
 	t->key_free_func = key_free_func;
 	t->value_free_func = value_free_func;
 
-	//Set the table-size to 0 
+	// Set the table-size to 0
 	//(used in table_is_empty() and as an index in the array)
 	t->size = 0;
 
@@ -94,39 +93,39 @@ bool table_is_empty(const table *t)
  * @value: A pointer to the value value.
  *
  * Insert the key/value pair into the table. Start by running a test to
- * check if key is a duplicate. 
- * 
- * If match a is found, Deallocate the 
- * duplicate and insert a new key/value pair with a new value  
- * 
- * If no match is found, insert the key/value pair at the 
+ * check if key is a duplicate.
+ *
+ * If match a is found, Deallocate the
+ * duplicate and insert a new key/value pair with a new value
+ *
+ * If no match is found, insert the key/value pair at the
  * "end" of the array and increase the table size by 1.
  *
  * Returns: Nothing.
  */
 void table_insert(table *t, void *key, void *value)
 {
-	//Iterate trough the table and search for duplicate.
+	// Iterate trough the table and search for duplicate.
 	for (int i = 0; i < t->size; i++)
 	{
 		struct table_entry *inspection_entry = array_1d_inspect_value(t->entries, i);
-		if (t->key_cmp_func(inspection_entry->key, key) == 0) //If a duplicate is found
+		if (t->key_cmp_func(inspection_entry->key, key) == 0) // If a duplicate is found
 		{
 			if (t->key_free_func != NULL)
 			{
-				t->key_free_func(inspection_entry->key); //Free the old key since the new key is already allocated.
+				t->key_free_func(inspection_entry->key); // Free the old key since the new key is already allocated.
 			}
 			if (t->value_free_func != NULL)
 			{
-				t->value_free_func(inspection_entry->value); //Free the "old" value
+				t->value_free_func(inspection_entry->value); // Free the "old" value
 			}
-			//Set the duplicate key/value pair to the inserted values
+			// Set the duplicate key/value pair to the inserted values
 			inspection_entry->value = value;
 			inspection_entry->key = key;
 			return;
 		}
 	}
-	//If no match is found, insert the entry to the "end" of the table and increase the table size
+	// If no match is found, insert the entry to the "end" of the table and increase the table size
 	struct table_entry *entry = malloc(sizeof(struct table_entry));
 	entry->value = value;
 	entry->key = key;
@@ -144,7 +143,7 @@ void table_insert(table *t, void *key, void *value)
  */
 void *table_lookup(const table *t, const void *key)
 {
-	//Iterate trough the array and search for a match 
+	// Iterate trough the array and search for a match
 	for (int i = 0; i < t->size; i++)
 	{
 		struct table_entry *entry = array_1d_inspect_value(t->entries, i);
@@ -169,11 +168,11 @@ void *table_lookup(const table *t, const void *key)
  */
 void table_remove(table *t, const void *key)
 {
-	//Iterate trough the array and search for a match 
+	// Iterate trough the array and search for a match
 	for (int i = 0; i < t->size; i++)
 	{
 		struct table_entry *inspection_entry = array_1d_inspect_value(t->entries, i);
-		//If a match is found 
+		// If a match is found
 		if (t->key_cmp_func(inspection_entry->key, key) == 0)
 		{
 			// Free key and/or value if given the authority to do so.
@@ -186,12 +185,12 @@ void table_remove(table *t, const void *key)
 				t->value_free_func(inspection_entry->value);
 			}
 
-			//Free the matching entry and insert the last entry in its place
+			// Free the matching entry and insert the last entry in its place
 			free(inspection_entry);
 			struct table_entry *last_entry = array_1d_inspect_value(t->entries, t->size - 1);
 			array_1d_set_value(t->entries, last_entry, i);
-			
-			//Decrease the table-size
+
+			// Decrease the table-size
 			t->size--;
 			return;
 		}
@@ -226,13 +225,13 @@ void table_kill(table *t)
 			{
 				t->value_free_func(entry->value);
 			}
-			//Free the entry-pointer itself
+			// Free the entry-pointer itself
 			free(entry);
 		}
 	}
-	//Kill whats left of the array
+	// Kill whats left of the array
 	array_1d_kill(t->entries);
-	//And free the table-header
+	// And free the table-header
 	free(t);
 }
 
@@ -247,7 +246,7 @@ void table_kill(table *t)
  */
 void table_print(const table *t, inspect_callback_pair print_func)
 {
-	//Iterate trough the table
+	// Iterate trough the table
 	for (int i = 0; i < t->size; i++)
 	{
 		struct table_entry *e = array_1d_inspect_value(t->entries, i);

@@ -477,10 +477,8 @@ void test_insert_lookup_different_keys()
 
         table_insert(t, key1, value1);
         test_lookup_existing_key(t, "key1", "value1");
-		printf("\n\nHÄR\n\n");
         table_insert(t, key2, value2);
         test_lookup_existing_key(t, "key1", "value1");
-		printf("\n\ntest_insert 1 OK\n\n");
         test_lookup_existing_key(t, "key2", "value2");
 		
         table_insert(t, key3, value3);
@@ -573,6 +571,7 @@ void test_remove_single_element()
  */
 void test_remove_elements_different_keys()
 {
+
         table *t = table_empty(string_compare, free, free);
 
         char *key1 = copy_string("key1");
@@ -585,17 +584,23 @@ void test_remove_elements_different_keys()
         table_insert(t, key1, value1);
         table_insert(t, key2, value2);
         table_insert(t, key3, value3);
+		
 
+
+		
         table_remove(t, key1);
         if (table_is_empty(t)){
                 printf("Should be two elements left in the table but it says "
                        "it is empty\n");
                 exit(EXIT_FAILURE);
         }
+		
         test_lookup_missing_key(t, "key1");
+		
+
+
         test_lookup_existing_key(t, "key2", "value2");
         test_lookup_existing_key(t, "key3", "value3");
-
         table_remove(t, key2);
         if (table_is_empty(t)){
                 printf("Should be one element left in the table but it "
@@ -693,7 +698,6 @@ void correctness_test()
         test_isempty();
         test_insert_single_element();
         test_lookup_single_element();
-		printf("test_insert_lookup_different_keys()\n");
         test_insert_lookup_different_keys();
         test_insert_lookup_same_keys();
         test_remove_single_element();
