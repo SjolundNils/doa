@@ -4,10 +4,6 @@
 #include <dlist.h>
 
 /*
- * Implementation of a generic table for the "Datastructures and
- * algorithms" courses at the Department of Computing Science, Umea
- * University.
- *
  * This code provides functionality for creating and manipulating a generic
  * table data structure. The table is implemented as sorted list.
  * 
@@ -34,7 +30,6 @@ struct table_entry {
 	void *value;
 };
 
-// ===========INTERNAL FUNCTION IMPLEMENTATIONS============
 
 /**
  * table_empty() - Create an empty table.
@@ -44,7 +39,7 @@ struct table_entry {
  * @value_free_func: A pointer to a function (or NULL) to be called to
  *		     de-allocate memory for values on remove/kill.
  *
- * Returns: Pointer to a new table.
+ * Returns: Pointer to the newly created table.
  */
 table *table_empty(compare_function *key_cmp_func,
 		   free_function key_free_func,
@@ -76,8 +71,8 @@ bool table_is_empty(const table *t)
 /**
  * table_insert() - Add a key/value pair to a table.
  * @table: Table to manipulate.
- * @key: A pointer to the key value.
- * @value: A pointer to the value value.
+ * @key: A pointer to value of the key.
+ * @value: A pointer to value stored at said key.
  *
  * Insert the key/value pair into the table. The function tests for
  * duplicates. 
@@ -102,7 +97,7 @@ void table_insert(table *t, void *key, void *value)
 		struct table_entry *current_entry = dlist_inspect(t->entries, pos);
 		if (t->key_cmp_func(current_entry->key, key) > 0) // The given key is smaller than the first key in the list
 		{
-			dlist_insert(t->entries, entry, dlist_first(t->entries));
+			dlist_insert(t->entries, entry, pos);
 			return;
 		}
 		if(t->key_cmp_func(current_entry->key, key) == 0)
@@ -118,6 +113,7 @@ void table_insert(table *t, void *key, void *value)
 			}
 			current_entry->key = key;
 			current_entry->value = value;
+			free(entry); // Free the new entry since you dont need it
 			return;
 		}
 		
@@ -142,8 +138,7 @@ void table_insert(table *t, void *key, void *value)
  * @key: Key to look up.
  *
  * Returns: The value corresponding to a given key, or NULL if the key
- * is not found in the table. If the table contains duplicate keys,
- * the value that was latest inserted will be returned.
+ * is not found in the table.
  */
 void *table_lookup(const table *t, const void *key)
 {
@@ -169,40 +164,18 @@ void *table_lookup(const table *t, const void *key)
 }
 
 /**
- * table_choose_key() - Return an arbitrary key.
- * @t: Table to inspect.
- *
- * Return an arbitrary key stored in the table. Can be used together
- * with table_remove() to deconstruct the table. Undefined for an
- * empty table.
- *
- * Returns: An arbitrary key stored in the table.
- */
-void *table_choose_key(const table *t)
-{
-	// Return first key value.
-	dlist_pos pos = dlist_first(t->entries);
-	struct table_entry *entry = dlist_inspect(t->entries, pos);
-
-	return entry->key;
-}
-
-/**
  * table_remove() - Remove a key/value pair in the table.
  * @table: Table to manipulate.
  * @key: Key for which to remove pair.
  *
- * Any matching duplicates will be removed. Will call any free
- * functions set for keys/values. Does nothing if key is not found in
- * the table.
+ * Removes any key and value from the table. The function also
+ * calls to any free functions for keys/values. Does nothing if
+ * key is not found.
  *
  * Returns: Nothing.
  */
 void table_remove(table *t, const void *key)
 {
-	// Will be set if we need to delay a free.
-	void *deferred_ptr = NULL;
-
 	// Start at beginning of the list.
 	dlist_pos pos = dlist_first(t->entries);
 
@@ -210,57 +183,39 @@ void table_remove(table *t, const void *key)
 	while (!dlist_is_end(t->entries, pos)) 
 	{
 		// Inspect the table entry
-		struct table_entry *entry = dlist_inspect(t->entries, pos);
+		struct table_entry *tmp_entry = dlist_inspect(t->entries, pos);
 
 		// Compare the supplied key with the key of this entry.
-		if (t->key_cmp_func(entry->key, key) == 0) 
+		if (t->key_cmp_func(tmp_entry->key, key) == 0) 
 		{
-			// If we have a match, call free on the key
-			// and/or value if given the responsiblity
 			if (t->key_free_func != NULL) 
 			{
-				if (entry->key == key)
-		 		{
-					// The given key points to the same
-					// memory as entry->key. Freeing here
-					// would trigger a memory error in the
-					// next iteration. Instead, defer free
-					// of this pointer to the very end.
-					deferred_ptr = entry->key;
-				} else 
-				{
-					t->key_free_func(entry->key);
-				}
+				t->key_free_func(tmp_entry->key);
 			}
 			if (t->value_free_func != NULL) 
 			{
-				t->value_free_func(entry->value);
+				t->value_free_func(tmp_entry->value);
 			}
-			// Remove the list element itself.
-			pos = dlist_remove(t->entries, pos);
 			// Deallocate the table entry structure.
-			free(entry);
+			free(tmp_entry);
+			// Remove the list element itself.
+			dlist_remove(t->entries, pos);
+
+			return;
 		} else 
 		{
 			// No match, move on to next element in the list.
 			pos = dlist_next(t->entries, pos);
 		}
 	}
-	if (deferred_ptr != NULL) 
-	{
-		// Take care of the delayed free.
-		t->key_free_func(deferred_ptr);
-	}
 }
 
-/*
+/**
  * table_kill() - Destroy a table.
  * @table: Table to destroy.
  *
- * Return all dynamic memory used by the table and its elements. If a
- * free_func was registered for keys and/or values at table creation,
- * it is called each element to free any user-allocated memory
- * occupied by the element values.
+ * Iterates over the list, kills all elements
+ * and frees all memory allocated.
  *
  * Returns: Nothing.
  */
@@ -282,21 +237,17 @@ void table_kill(table *t)
 		{
 			t->value_free_func(entry->value);
 		}
-		// Move on to next element.
-		pos = dlist_next(t->entries, pos);
+
 		// Deallocate the table entry structure.
 		free(entry);
+
+		// Move on to next element.
+		pos = dlist_next(t->entries, pos);
 	}
 
-	// Kill what's left of the list...
 	dlist_kill(t->entries);
-	// ...and the table.
 	free(t);
 }
-
-
-
-
 
 /**
  * table_print() - Print the given table.
