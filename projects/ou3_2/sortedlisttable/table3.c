@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 #include <table.h>
 #include <dlist.h>
 
@@ -9,17 +8,16 @@
  * algorithms" courses at the Department of Computing Science, Umea
  * University.
  *
- * Duplicates are handled by inspect and remove.
+ * This code provides functionality for creating and manipulating a generic
+ * table data structure. The table is implemented as sorted list.
+ * 
+ * Duplicates are handled by insert.
  *
- * Authors: Niclas Borlin (niclas@cs.umu.se)
- *	    Adam Dahlgren Lindstrom (dali@cs.umu.se)
- *
- * Based on earlier code by: Johan Eliasson (johane@cs.umu.se).
+ * Authors: Sebastian Gabrielsson ()
+ *	    Nils Sjölund ()
  *
  * Version information:
- *   v1.0 2018-02-06: First public version.
- *   v1.1 2019-02-21: Second version without dlist/memfreehandler.
- *   v1.2 2019-03-04: Bugfix in table_remove.
+ * 
  */
 
 // ===========INTERNAL DATA TYPES============
@@ -81,23 +79,20 @@ bool table_is_empty(const table *t)
  * @key: A pointer to the key value.
  * @value: A pointer to the value value.
  *
- * Insert the key/value pair into the table. No test is performed to
- * check if key is a duplicate. table_lookup() will return the latest
- * added value for a duplicate key. table_remove() will remove all
- * duplicates for a given key.
+ * Insert the key/value pair into the table. The function tests for
+ * duplicates. 
  *
  * Returns: Nothing.
  */
 void table_insert(table *t, void *key, void *value)
 {
-
+	struct table_entry *entry = malloc(sizeof(struct table_entry));
+	entry->key = key;
+	entry->value = value;
 
 	if(dlist_is_empty(t->entries))
 	{
-		struct table_entry *first_entry = malloc(sizeof(struct table_entry));
-		first_entry->key = key;
-		first_entry->value = value;
-		dlist_insert(t->entries, first_entry, dlist_first(t->entries)); // If the table is empty, insert the given key and value at first position
+		dlist_insert(t->entries, entry, dlist_first(t->entries)); // If the table is empty, insert the given key and value at first position
 		return;
 	}
 
@@ -105,12 +100,9 @@ void table_insert(table *t, void *key, void *value)
 	while (!dlist_is_end(t->entries, pos))
 	{
 		struct table_entry *current_entry = dlist_inspect(t->entries, pos);
-		if (t->key_cmp_func(current_entry->key, key) > 0) // The given key is smaller than the first (CURRENT??) key in the list
+		if (t->key_cmp_func(current_entry->key, key) > 0) // The given key is smaller than the first key in the list
 		{
-			struct table_entry *smallest_entry = malloc(sizeof(struct table_entry));
-			smallest_entry->key = key;
-			smallest_entry->value = value;
-			dlist_insert(t->entries, smallest_entry, dlist_first(t->entries));
+			dlist_insert(t->entries, entry, dlist_first(t->entries));
 			return;
 		}
 		if(t->key_cmp_func(current_entry->key, key) == 0)
@@ -139,10 +131,7 @@ void table_insert(table *t, void *key, void *value)
 	{
 		high_limit = dlist_next(t->entries, high_limit);
 	}
-
-	struct table_entry *entry = malloc(sizeof(struct table_entry));
-	entry->key = key;
-	entry->value = value;
+	
 	dlist_insert(t->entries, entry, high_limit); // Insert value at the newly found end of the list
 
 }
@@ -306,10 +295,10 @@ void table_kill(table *t)
 }
 
 
-/*
 
 
 
+/**
  * table_print() - Print the given table.
  * @t: Table to print.
  * @print_func: Function called for each key/value pair in the table.
@@ -318,7 +307,7 @@ void table_kill(table *t)
  * Will print all stored elements, including duplicates.
  *
  * Returns: Nothing.
- 
+ */
 void table_print(const table *t, inspect_callback_pair print_func)
 {
 	// Iterate over all elements. Call print_func on keys/values.
@@ -331,46 +320,3 @@ void table_print(const table *t, inspect_callback_pair print_func)
 		pos = dlist_next(t->entries, pos);
 	}
 }
-
-static void print_int_string_pair(const void *key, const void *value)
-{
-	const int *k=key;
-	const char *s=value;
-	printf("[%d, %s]\n", *k, s);
-}
-
-// Compare two keys (int *).
-static int compare_ints(const void *k1, const void *k2)
-{
-	int key1 = *(int *)k1;
-	int key2 = *(int *)k2;
-
-	if ( key1 == key2 )
-		return 0;
-	if ( key1 < key2 )
-		return -1;
-	return 1;
-}
-
-
-int main()
-{
-    table *t = table_empty(compare_ints, free, free);
-    
-    int *v = malloc(sizeof(*v));
-    *v = 3; // Corrected assignment
-    char *s = malloc(sizeof(*s) * 5); // Allocating memory for a string "NILS" (including null-terminator)
-    strcpy(s, "NILS"); // Copying "NILS" into the allocated memory
-    table_insert(t, v, s);
-
-	int *v2 = malloc(sizeof(*v2));
-    *v2 = 1; // Corrected assignment
-    char *s2 = malloc(sizeof(*s2) * 5); // Allocating memory for a string "NILS" (including null-terminator)
-    strcpy(s2, "PILS"); // Copying "NILS" into the allocated memory
-    table_insert(t, v2, s2);
-
-    table_print(t, print_int_string_pair);
-    return 0;
-}
-
-*/

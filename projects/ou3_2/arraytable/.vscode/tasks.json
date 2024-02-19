@@ -12,7 +12,7 @@
 				"~/edu/doa/code_base/current/src/array_1d/array_1d.c",
 				//"~/edu/doa/code_base/current/src/dlist/dlist.c",
 				//"~/edu/doa/code_base/current/src/table/table.c",
-				"~/edu/doa/projects/ou3_2/arraytable/arraytable.c",
+				"${workspaceFolder}/table2.c",
                 "${file}",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}",

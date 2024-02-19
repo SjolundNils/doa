@@ -8,7 +8,7 @@
                 "-fdiagnostics-color=always",
                 "-g",
 				"~/edu/doa/code_base/current/src/dlist/dlist.c",
-				"${workspaceFolder}/table1.c",
+				"${workspaceFolder}/table0.c",
                 "${file}",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}",

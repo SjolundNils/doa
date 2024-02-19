@@ -2,9 +2,7 @@
 #include <stdio.h>
 
 #include <table.h>
-#include <array_1d.h>
-
-#define MAXSIZE 80000
+#include <dlist.h>
 
 /*
  * Implementation of a generic table for the "Datastructures and
@@ -13,21 +11,23 @@
  *
  * Duplicates are handled by inspect and remove.
  *
- * Authors: Lovisa Nordström (id23lnm@cs.umu.se)
- *	    Anna Olsson (id23aon@cs.umu.se)
+ * Authors: Niclas Borlin (niclas@cs.umu.se)
+ *	    Adam Dahlgren Lindstrom (dali@cs.umu.se)
  *
- * Based on earlier code by: Johan Eliasson (johane@cs.umu.se) and Niclas Borlin (niclas@cs.umu.se)
+ * Based on earlier code by: Johan Eliasson (johane@cs.umu.se).
  *
  * Version information:
- *   v1.0 2024-02-: First version to hand in
+ *   v1.0 2018-02-06: First public version.
+ *   v1.1 2019-03-04: Bugfix in table_remove.
  */
 
+// ===========INTERNAL DATA TYPES============
+
 struct table {
-	array_1d *entries;
+	dlist *entries;
 	compare_function *key_cmp_func;
 	free_function key_free_func;
 	free_function value_free_func;
-	int occupied_position;
 };
 
 struct table_entry {
@@ -38,7 +38,7 @@ struct table_entry {
 // ===========INTERNAL FUNCTION IMPLEMENTATIONS============
 
 /**
- * table_empty() - Create an empty table and sets the number of occupied positions to 0.
+ * table_empty() - Create an empty table.
  * @key_cmp_func: A pointer to a function to be used to compare keys.
  * @key_free_func: A pointer to a function (or NULL) to be called to
  *		   de-allocate memory for keys on remove/kill.
@@ -53,14 +53,12 @@ table *table_empty(compare_function *key_cmp_func,
 {
 	// Allocate the table header.
 	table *t = calloc(1, sizeof(table));
-	// Create the array to hold the table_entry-ies.
-	t->entries = array_1d_create(0, MAXSIZE, NULL);
+	// Create the list to hold the table_entry-ies.
+	t->entries = dlist_empty(free);
 	// Store the key compare function and key/value free functions.
 	t->key_cmp_func = key_cmp_func;
 	t->key_free_func = key_free_func;
 	t->value_free_func = value_free_func;
-
-	t->occupied_position = 0;
 
 	return t;
 }
@@ -73,7 +71,7 @@ table *table_empty(compare_function *key_cmp_func,
  */
 bool table_is_empty(const table *t)
 {
-	return t->occupied_position == 0;
+	return dlist_is_empty(t->entries);
 }
 
 /**
@@ -82,49 +80,23 @@ bool table_is_empty(const table *t)
  * @key: A pointer to the key value.
  * @value: A pointer to the value value.
  *
- * Insert the key/value pair into the table. A test is performed to
- * check if key is a duplicate. If there is a duplicate, 
- * the new value will overwrite the previous value.
+ * Insert the key/value pair into the table. No test is performed to
+ * check if key is a duplicate. table_lookup() will return the latest
+ * added value for a duplicate key. table_remove() will remove all
+ * duplicates for a given key.
  *
  * Returns: Nothing.
  */
 void table_insert(table *t, void *key, void *value)
 {
-	for(int i = 0; i < t->occupied_position; i++)
-	{
-		struct table_entry *current_entry = array_1d_inspect_value(t->entries, i);
-
-		// Check if the entry key matches the search key.
-		if (t->key_cmp_func(current_entry->key, key) == 0) 
-		{
-			// Free the existing entry's memory before overwriting it.
-			if (t->key_free_func != NULL)
-			{
-				t->key_free_func(current_entry->key);
-			}
-
-			if (t->value_free_func != NULL) {
-				t->value_free_func(current_entry->value);
-			}
-
-			current_entry->key = key;
-			current_entry->value = value;
-
-			//array_1d_set_value(t->entries, current_entry, i);
-			return;
-		}	
-	}	
-
 	// Allocate the key/value structure.
 	struct table_entry *entry = malloc(sizeof(struct table_entry));
 
-	// Set the pointers and insert at the first free position in the array. This will
+	// Set the pointers and insert first in the list. This will
 	// cause table_lookup() to find the latest added value.
 	entry->key = key;
 	entry->value = value;
-
-	array_1d_set_value(t->entries, entry, t->occupied_position);
-	t->occupied_position++;
+	dlist_insert(t->entries, entry, dlist_first(t->entries));
 }
 
 /**
@@ -133,22 +105,25 @@ void table_insert(table *t, void *key, void *value)
  * @key: Key to look up.
  *
  * Returns: The value corresponding to a given key, or NULL if the key
- * is not found in the table.
+ * is not found in the table. If the table contains duplicate keys,
+ * the value that was latest inserted will be returned.
  */
 void *table_lookup(const table *t, const void *key)
 {
-	// Iterate over the array. Return if there is a match.
+	// Iterate over the list. Return first match.
 
-	for (int i = 0; i < t->occupied_position; i++) {
+	dlist_pos pos = dlist_first(t->entries);
 
+	while (!dlist_is_end(t->entries, pos)) {
 		// Inspect the table entry
-		struct table_entry *entry = array_1d_inspect_value(t->entries, i);
-
+		struct table_entry *entry = dlist_inspect(t->entries, pos);
 		// Check if the entry key matches the search key.
 		if (t->key_cmp_func(entry->key, key) == 0) {
 			// If yes, return the corresponding value pointer.
 			return entry->value;
 		}
+		// Continue with the next position.
+		pos = dlist_next(t->entries, pos);
 	}
 	// No match found. Return NULL.
 	return NULL;
@@ -167,51 +142,65 @@ void *table_lookup(const table *t, const void *key)
 void *table_choose_key(const table *t)
 {
 	// Return first key value.
-	int first_index = array_1d_low(t->entries);
-	struct table_entry *entry = array_1d_inspect_value(t->entries, first_index);
+	dlist_pos pos = dlist_first(t->entries);
+	struct table_entry *entry = dlist_inspect(t->entries, pos);
 
 	return entry->key;
 }
-
 
 /**
  * table_remove() - Remove a key/value pair in the table.
  * @table: Table to manipulate.
  * @key: Key for which to remove pair.
  *
- * Will call any free functions set for keys/values. 
- * Does nothing if key is not found in the table.
+ * Any matching duplicates will be removed. Will call any free
+ * functions set for keys/values. Does nothing if key is not found in
+ * the table.
  *
  * Returns: Nothing.
  */
 void table_remove(table *t, const void *key)
 {
-	for( int i = 0; i < t->occupied_position; i++) {
+	// Will be set if we need to delay a free.
+	void *deferred_ptr = NULL;
 
+	// Start at beginning of the list.
+	dlist_pos pos = dlist_first(t->entries);
+
+	// Iterate over the list. Remove any entries with matching keys.
+	while (!dlist_is_end(t->entries, pos)) {
 		// Inspect the table entry
-		struct table_entry *entry = array_1d_inspect_value(t->entries, i);
+		struct table_entry *entry = dlist_inspect(t->entries, pos);
 
-		if(t->key_cmp_func(entry->key, key) == 0) {
-
+		// Compare the supplied key with the key of this entry.
+		if (t->key_cmp_func(entry->key, key) == 0) {
+			// If we have a match, call free on the key
+			// and/or value if given the responsiblity
 			if (t->key_free_func != NULL) {
-				t->key_free_func(entry->key);
+				if (entry->key == key) {
+					// The given key points to the same
+					// memory as entry->key. Freeing here
+					// would trigger a memory error in the
+					// next iteration. Instead, defer free
+					// of this pointer to the very end.
+					deferred_ptr = entry->key;
+				} else {
+					t->key_free_func(entry->key);
+				}
 			}
-
 			if (t->value_free_func != NULL) {
 				t->value_free_func(entry->value);
 			}
-
-			free(entry);
-
-			// Move the last entry to the current position
-            struct table_entry *last_entry = array_1d_inspect_value(t->entries, t->occupied_position - 1);
-            array_1d_set_value(t->entries, last_entry, i);
-
-            // Set the last entry to NULL
-            array_1d_set_value(t->entries, NULL, t->occupied_position - 1);
-
-			t->occupied_position --;
+			// Remove the list element itself.
+			pos = dlist_remove(t->entries, pos);
+		} else {
+			// No match, move on to next element in the list.
+			pos = dlist_next(t->entries, pos);
 		}
+	}
+	if (deferred_ptr != NULL) {
+		// Take care of the delayed free.
+		t->key_free_func(deferred_ptr);
 	}
 }
 
@@ -228,26 +217,25 @@ void table_remove(table *t, const void *key)
  */
 void table_kill(table *t)
 {
-	// Iterate over the table. Destroy all elements.
+	// Iterate over the list. Destroy all elements.
+	dlist_pos pos = dlist_first(t->entries);
 
-	for(int i = 0; i < t->occupied_position; i++) {
-
-		// Inspect the table entry
-		struct table_entry *entry = array_1d_inspect_value(t->entries, i);
-
+	while (!dlist_is_end(t->entries, pos)) {
+		// Inspect the key/value pair.
+		struct table_entry *entry = dlist_inspect(t->entries, pos);
 		// Free key and/or value if given the authority to do so.
 		if (t->key_free_func != NULL) {
 			t->key_free_func(entry->key);
 		}
-
 		if (t->value_free_func != NULL) {
 			t->value_free_func(entry->value);
 		}
-		free(entry);
+		// Move on to next element.
+		pos = dlist_next(t->entries, pos);
 	}
 
-	// Kill what's left of the array...
-	array_1d_kill(t->entries);
+	// Kill what's left of the list...
+	dlist_kill(t->entries);
 	// ...and the table.
 	free(t);
 }
@@ -258,19 +246,19 @@ void table_kill(table *t)
  * @print_func: Function called for each key/value pair in the table.
  *
  * Iterates over the key/value pairs in the table and prints them.
- *
+ * Will print all stored elements, including duplicates.
+ * 
  * Returns: Nothing.
  */
 void table_print(const table *t, inspect_callback_pair print_func)
 {
-	for(int i = 0; i < t->occupied_position; i++) {
-		
-		struct table_entry *e = array_1d_inspect_value(t->entries, i);
-		// Call print_func
-		array_1d_print(e->key, e->value);
+	// Iterate over all elements. Call print_func on keys/values.
+	dlist_pos pos = dlist_first(t->entries);
 
+	while (!dlist_is_end(t->entries, pos)) {
+		struct table_entry *e = dlist_inspect(t->entries, pos);
+		// Call print_func
+		print_func(e->key, e->value);
+		pos = dlist_next(t->entries, pos);
 	}
 }
-//gcc -std=c99 -Wall -I ../../code_base/current/include/ -o tabletest-1.9 tabletest-1.9.c arraytable.c ../../code_base/current/src/array_1d/array_1d.c
-
-
