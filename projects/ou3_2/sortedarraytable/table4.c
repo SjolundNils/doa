@@ -21,7 +21,7 @@
  * Based on earlier code by: Niclas Borlin (niclas@cs.umu.se)
  *
  * Version information:
- *   v1.0 2024-02-14 first public version
+ *   v1.0 2024-02-20 first public version
  *
  */
 
@@ -87,6 +87,25 @@ bool table_is_empty(const table *t)
 }
 
 /**
+ * table_choose_key() - Return an arbitrary key.
+ * @t: Table to inspect.
+ *
+ * Return an arbitrary key stored in the table. 
+ * Undefined for an empty table.
+ *
+ * Returns: An arbitrary key stored in the table.
+ */
+void *table_choose_key(const table *t)
+{
+	if (table_is_empty(t)){		
+		return NULL;
+	}
+
+	struct table_entry *entry = array_1d_inspect_value(t->entries, 0);
+	return entry->key;
+}
+
+/**
  * table_insert() - Add a key/value pair to a table.
  * @table: Table to manipulate.
  * @key: A pointer to the key value.
@@ -98,8 +117,9 @@ bool table_is_empty(const table *t)
  * If match a is found, Deallocate the
  * duplicate and insert a new key/value pair with a new value
  *
- * If no match is found, insert the key/value pair at the
- * "end" of the array and increase the table size by 1.
+ * If no match is found, shift all entries with a larger key one step "up",
+ * insert the key/value at the correct index
+ * 
  *
  * Returns: Nothing.
  */
@@ -198,9 +218,8 @@ void *table_lookup(const table *t, const void *key)
  * @table: Table to manipulate.
  * @key: Key for which to remove pair.
  *
- * Any matching duplicates will be removed. Will call any free
- * functions set for keys/values. Does nothing if key is not found in
- * the table.
+ * Will call any free functions set for keys/values. 
+ * Does nothing if key is not found in the table.
  *
  * Returns: Nothing.
  */
