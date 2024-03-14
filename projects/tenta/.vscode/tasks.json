@@ -7,17 +7,9 @@
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
-				"-std=c99",
-				"-Wall",
-				"~/edu/doa/code_base/current/src/array_1d/array_1d.c",
-				//"~/edu/doa/code_base/current/src/dlist/dlist.c",
-				//"~/edu/doa/code_base/current/src/table/table.c",
-				"${workspaceFolder}/arraytable.c",
                 "${file}",
                 "-o",
-                "${fileDirname}/${fileBasenameNoExtension}",
-				"-I",
-				"~/edu/doa/code_base/current/include"
+                "${fileDirname}/${fileBasenameNoExtension}"
             ],
             "options": {
                 "cwd": "${fileDirname}"

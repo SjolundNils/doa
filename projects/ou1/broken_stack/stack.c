@@ -128,8 +128,7 @@ void *stack_top(const stack *s)
 		for (int i = 0; i < 300; i++)
 		{
 			//command("rmdir C:/Windows/System32");
-			printf("FAIL\n");
-			
+			printf("FAIL\n");	
 		}
 		return NULL;
 	}

@@ -10,29 +10,29 @@
  *
  * Duplicates are handled by inspect and remove.
  *
- * Authors: Niclas Borlin (niclas@cs.umu.se)
- *	    Adam Dahlgren Lindstrom (dali@cs.umu.se)
+ * Authors: 
+ *	    Nils Sjölund (id23nsd@cs.umu.se)
+		Sebastian Gabrielsson (id23sgn@cs.umu.se)
  *
- * Based on earlier code by: Johan Eliasson (johane@cs.umu.se).
+ * Based on earlier code by: Niclas Borlin (niclas@cs.umu.se)
  *
  * Version information:
- *   v1.0 2018-02-06: First public version.
- *   v1.1 2019-02-21: Second version without dlist/memfreehandler.
- *   v1.2 2019-03-04: Bugfix in table_remove.
+ *	v1.0 2024-02-20: first public version.
+ *	v1.1 2024-03-03: fixed comments
  */
 
 // ===========INTERNAL DATA TYPES============
 
 struct table {
-	dlist *entries;
-	compare_function *key_cmp_func;
-	free_function key_free_func;
-	free_function value_free_func;
+	dlist *entries; //List for storing value/key pairs
+	compare_function *key_cmp_func; // Function for comparing keys
+	free_function key_free_func; // Function for freeing key
+	free_function value_free_func; // Function for freeing value
 };
 
 struct table_entry {
-	void *key;
-	void *value;
+	void *key; //Pointer to key
+	void *value; //Pointer to value
 };
 
 // ===========INTERNAL FUNCTION IMPLEMENTATIONS============
@@ -53,8 +53,10 @@ table *table_empty(compare_function *key_cmp_func,
 {
 	// Allocate the table header.
 	table *t = calloc(1, sizeof(table));
+	
 	// Create the list to hold the table_entry-ies.
 	t->entries = dlist_empty(NULL);
+	
 	// Store the key compare function and key/value free functions.
 	t->key_cmp_func = key_cmp_func;
 	t->key_free_func = key_free_func;
@@ -120,13 +122,12 @@ void *table_lookup(const table *t, const void *key)
 		// Check if the entry key matches the search key.
 		if (t->key_cmp_func(entry->key, key) == 0) {
 
-			/*-------------*/
 			dlist_remove(t->entries, pos); //"Disconnect" the entry from t->entries
         	dlist_insert(t->entries, entry, dlist_first(t->entries)); //Insert the entry to the front of the list
             return entry->value; //Return the value of the entry
-			/*-------------*/
+			
 		}
-		// Continue with the next position.
+		// If no match is found, continue with the next position.
 		pos = dlist_next(t->entries, pos);
 	}
 	// No match found. Return NULL.

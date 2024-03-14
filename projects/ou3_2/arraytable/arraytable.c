@@ -21,7 +21,8 @@
  * Based on earlier code by: Niclas Borlin (niclas@cs.umu.se)
  *
  * Version information:
- *   v1.0 2024-02-20 first public version
+ *	v1.0 2024-02-20 first public version
+ *	v1.1 2024-03-03 fixed comments
  *
  */
 
@@ -29,17 +30,17 @@
 
 struct table
 {
-	array_1d *entries;
-	compare_function *key_cmp_func;
-	free_function key_free_func;
-	free_function value_free_func;
-	int size;
+	array_1d *entries; // Array for storing value/key pairs
+	compare_function *key_cmp_func; // Function for comparing keys
+	free_function key_free_func; // Function for freeing key
+	free_function value_free_func; // Function for freeing value
+	int size; //Size of table
 };
 
 struct table_entry
 {
-	void *key;
-	void *value;
+	void *key; // Pointer to key
+	void *value; // Pointer to value
 };
 
 // ===========INTERNAL FUNCTION IMPLEMENTATIONS============
@@ -54,6 +55,8 @@ struct table_entry
  *
  * Returns: Pointer to a new table.
  */
+
+
 table *table_empty(compare_function *key_cmp_func,
 				   free_function key_free_func,
 				   free_function value_free_func)
@@ -97,10 +100,12 @@ bool table_is_empty(const table *t)
  */
 void *table_choose_key(const table *t)
 {
+	// If the table is empty return NULL
 	if (table_is_empty(t)){		
 		return NULL;
 	}
 
+	// Otherwise, return the key of the first entry
 	struct table_entry *entry = array_1d_inspect_value(t->entries, 0);
 	return entry->key;
 }
@@ -117,65 +122,44 @@ void *table_choose_key(const table *t)
  * If match a is found, Deallocate the
  * duplicate and insert a new key/value pair with a new value
  *
- * If no match is found, shift all entries with a larger key one step "up",
- * insert the key/value at the correct index
- * 
+ * If no match is found, insert the key/value pair at the
+ * "end" of the array and increase the table size by 1.
  *
  * Returns: Nothing.
  */
 void table_insert(table *t, void *key, void *value)
 {
-	int low = 0;
-	int high = t->size - 1;
-	int mid = low + (high - low) / 2;
-	int insert_index = t->size; // Defaults to last open space
-	while (low <= high)
+	// Iterate trough the table and search for duplicate.
+	for (int i = 0; i < t->size; i++)
 	{
-		mid = low + (high - low) / 2;
-		struct table_entry *mid_entry = array_1d_inspect_value(t->entries, mid);
-		if (t->key_cmp_func(mid_entry->key, key) == 0)
+		//Entry to inspect
+		struct table_entry *inspection_entry = array_1d_inspect_value(t->entries, i);
+		
+		// Compare the supplied key with the key of this entry.// Compare the supplied key with the key of this entry.
+		if (t->key_cmp_func(inspection_entry->key, key) == 0) // If a duplicate is found
 		{
-			if (t->value_free_func != NULL)
-			{
-				t->value_free_func(mid_entry->value);
-			}
+			// If we have a match, call free on the key
+			// and/or value if given the responsiblity
 			if (t->key_free_func != NULL)
 			{
-				t->key_free_func(mid_entry->key); // Free the old key since the new key is already allocated.
+				// Free the old key since the new key is already allocated.
+				t->key_free_func(inspection_entry->key); 
+			}
+			if (t->value_free_func != NULL)
+			{
+				t->value_free_func(inspection_entry->value); 
 			}
 			// Set the duplicate key/value pair to the inserted values
-			mid_entry->key = key;
-			mid_entry->value = value;
+			inspection_entry->value = value;
+			inspection_entry->key = key;
 			return;
 		}
-		else if (t->key_cmp_func(mid_entry->key, key) > 0)
-		{
-			insert_index = mid; // Set insert_index to mid since it can't be t->size
-			high = mid - 1;
-		}
-		else
-		{
-			// insert_index could still be t->size
-			low = mid + 1;
-		}
 	}
-
-	// If no match is found, allocate memory for a new entry
+	// If no match is found, insert the entry to the "end" of the table and increase the table size
 	struct table_entry *entry = malloc(sizeof(struct table_entry));
 	entry->value = value;
 	entry->key = key;
-
-	// Shift elements to make space for the new entry.
-	for (int i = t->size; i > insert_index; i--)
-	{
-		struct table_entry *shifted_entry = array_1d_inspect_value(t->entries, i - 1);
-		array_1d_set_value(t->entries, shifted_entry, i);
-	}
-
-	// Insert the new entry at the correct position.
-	array_1d_set_value(t->entries, entry, insert_index);
-
-	// Increase the table size.
+	array_1d_set_value(t->entries, entry, t->size);
 	t->size++;
 }
 
@@ -189,27 +173,19 @@ void table_insert(table *t, void *key, void *value)
  */
 void *table_lookup(const table *t, const void *key)
 {
-	int low = 0;
-	int high = t->size - 1;
-	int mid = low + high - low / 2;
-
-	while (low <= high)
+	// Iterate trough the array and search for a match
+	for (int i = 0; i < t->size; i++)
 	{
-		mid = low + (high - low) / 2;
-		struct table_entry *entry = array_1d_inspect_value(t->entries, mid);
+		// Entry to inspect
+		struct table_entry *entry = array_1d_inspect_value(t->entries, i);
 		if (t->key_cmp_func(entry->key, key) == 0)
 		{
+			// Supplied key is found, return value stored at the key 
 			return entry->value;
 		}
-		else if (t->key_cmp_func(entry->key, key) > 0)
-		{
-			high = mid - 1;
-		}
-		else
-		{
-			low = mid + 1;
-		}
 	}
+
+	//If no match is found, return NULL
 	return NULL;
 }
 
@@ -225,53 +201,33 @@ void *table_lookup(const table *t, const void *key)
  */
 void table_remove(table *t, const void *key)
 {
-	int low = 0;
-	int high = t->size - 1;
-	int mid = low + (high - low) / 2;
-	int removed_index = -1;
-
-	while (low <= high)
+	// Iterate trough the array and search for a match
+	for (int i = 0; i < t->size; i++)
 	{
-		mid = low + (high - low) / 2;
-		struct table_entry *mid_entry = array_1d_inspect_value(t->entries, mid);
-		if (t->key_cmp_func(mid_entry->key, key) == 0)
+		struct table_entry *inspection_entry = array_1d_inspect_value(t->entries, i);
+		// If a match is found
+		if (t->key_cmp_func(inspection_entry->key, key) == 0)
 		{
-			if (t->value_free_func != NULL)
-			{
-				t->value_free_func(mid_entry->value);
-			}
+			// Free key and/or value if given the authority to do so.
 			if (t->key_free_func != NULL)
 			{
-				t->key_free_func(mid_entry->key); // Free the old key since the new key is already allocated.
+				t->key_free_func(inspection_entry->key);
 			}
-			free(mid_entry);
-			// Save the index, for shifting elements
-			removed_index = mid;
-			break;
-		}
-		else if (t->key_cmp_func(mid_entry->key, key) > 0)
-		{
-			high = mid - 1;
-		}
-		else
-		{
-			low = mid + 1;
-		}
-	}
+			if (t->value_free_func != NULL)
+			{
+				t->value_free_func(inspection_entry->value);
+			}
 
-	// If no element was removed, return
-	if (removed_index == -1)
-	{
-		return;
-	}
+			// Free the matching entry and insert the last entry in its place
+			free(inspection_entry);
+			struct table_entry *last_entry = array_1d_inspect_value(t->entries, t->size - 1);
+			array_1d_set_value(t->entries, last_entry, i);
 
-	// Shift all larger elements one step back and decrease size
-	for (int i = removed_index + 1; i < t->size; i++)
-	{
-		struct table_entry *shifted_entry = array_1d_inspect_value(t->entries, i);
-		array_1d_set_value(t->entries, shifted_entry, i - 1);
+			// Decrease the table-size
+			t->size--;
+			return;
+		}
 	}
-	t->size--;
 }
 
 /*
