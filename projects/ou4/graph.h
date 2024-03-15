@@ -175,7 +175,7 @@ node *graph_choose_node(const graph *g);
  * Returns: A pointer to a list of nodes. Note: The list must be
  * dlist_kill()-ed after use.
  */
-dlist *graph_neighbours(const graph *g, const node *n);
+dlist *graph_neighbours(const graph *g,const node *n);
 
 /**
  * graph_kill() - Destroy a given graph.
