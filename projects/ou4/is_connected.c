@@ -38,6 +38,12 @@ int first_non_white_space(const char *s)
 	}
 }
 
+static void print_strings(void *data)
+{
+	char *s = data;
+	printf("%s", s);
+}
+
 /**
  * @brief Determine if the string is blank.
  *
@@ -107,7 +113,6 @@ int get_edges(FILE *fp)
 		}
 		else
 		{
-
 			sscanf(buff, "%d", &edges);
 			break;
 		}
@@ -115,52 +120,48 @@ int get_edges(FILE *fp)
 
 	if (edges == -1)
 	{
-		fprintf(stderr, "EDGELORD\n"); // Ta bort innan vi skickar in (Hanna tycker vi behåller det)
 		exit(EXIT_FAILURE);
 	}
 	return edges;
 }
 
-
-
 bool find_path(graph *g, node *src, node *dest)
 {
-		fprintf(stderr,"SRC ");
-		print_node(src);
-		fprintf(stderr, "\n");
 
-	if (nodes_are_equal(src, dest)){
+	if (nodes_are_equal(src, dest))
+	{
 		return true;
 	}
 	graph_node_set_seen(g, src, true);
 
-	queue *q = queue_enqueue(queue_empty(free), src);
-
-	int iteration = 0;
+	queue *q = queue_enqueue(queue_empty(NULL), src);
 
 	while (!queue_is_empty(q))
 	{
-		fprintf(stderr, "find_path iteration %d\n", iteration);
-		iteration++;
+
+
 		node *inspection_node = queue_front(q);
-		fprintf(stderr,"\nLETAR EFTER ");
-		print_node(inspection_node);
-		fprintf(stderr, "\n");
 		q = queue_dequeue(q);
 
-		fprintf(stderr, "dequeue slay\n");
+		dlist *neighbours = graph_neighbours(g, inspection_node);
 
-		dlist *slay = graph_neighbours(g, inspection_node);
-		fprintf(stderr, "slay successfull\n");
-		dlist_pos pos = dlist_first(slay);
+		dlist_print(neighbours, print_strings);
 
-		while (!dlist_is_end(slay, pos))
+		dlist_pos pos = dlist_first(neighbours);
+
+		while (!dlist_is_end(neighbours, pos))
 		{
-			node *list_node = dlist_inspect(slay, pos);
+			node *list_node = dlist_inspect(neighbours, pos);
+
+			if (list_node == NULL)
+			{
+
+				exit(EXIT_FAILURE);
+			}
 
 			if (nodes_are_equal(list_node, dest))
 			{
-				dlist_kill(slay);
+				dlist_kill(neighbours);
 				graph_reset_seen(g);
 				queue_kill(q);
 				return true;
@@ -170,15 +171,15 @@ bool find_path(graph *g, node *src, node *dest)
 				graph_node_set_seen(g, list_node, 1);
 				q = queue_enqueue(q, list_node);
 			}
-			pos = dlist_next(slay, pos);
+			pos = dlist_next(neighbours, pos);
 		}
-		dlist_kill(slay);
+		dlist_kill(neighbours);
 	}
 	queue_kill(q);
 	return false;
 }
 
-void run_the_shit(graph *g)
+void run_input(graph *g)
 {
 	char source_label[MAXNODENAME];
 	char destination_label[MAXNODENAME];
@@ -191,10 +192,10 @@ void run_the_shit(graph *g)
 		sscanf(search, "%s %s", source_label, destination_label);
 
 		// Det är här problemen uppstår
-		node *source = graph_find_node(g, "UME");
-		//fprintf(stderr, "%s\n", source->label);
+		node *source = graph_find_node(g, source_label);
+		// fprintf(stderr, "%s\n", source->label);
 
-		node *destination = graph_find_node(g, "BMA");
+		node *destination = graph_find_node(g, destination_label);
 
 		if (source == NULL || destination == NULL)
 		{
@@ -215,11 +216,6 @@ void run_the_shit(graph *g)
 	}
 }
 
-static void print_strings(void *data){
-	char *s = data;
-	printf("%s", s);
-}
-
 int main(int argc, char *argv[])
 {
 	const char *filename = argv[1];
@@ -232,14 +228,10 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	fprintf(stderr, "FILE OPENED\n");
-	
 	int edges = get_edges(fp);
-	graph *g = graph_empty(2*edges);
+	graph *g = graph_empty(2 * edges);
 	char buff[BUFSIZE];
-	
 
-	
 	while (fgets(buff, BUFSIZE, fp) != NULL)
 	{
 		if (!line_is_comment(buff) && !isdigit(buff[0]))
@@ -251,7 +243,7 @@ int main(int argc, char *argv[])
 			g = graph_insert_node(g, destination_node_label);
 
 			node *source_node = graph_find_node(g, source_node_label);
-			
+
 			node *destination_node = graph_find_node(g, destination_node_label);
 
 			g = graph_insert_edge(g, source_node, destination_node);
@@ -259,8 +251,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	graph_print(g);
-	run_the_shit(g);
+	run_input(g);
 
 	return 0;
 }
