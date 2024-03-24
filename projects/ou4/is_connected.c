@@ -8,6 +8,9 @@
  *	Nils Sjölund (id23nsd@cs.umu.se)
  * 	Hanna Vigren (id23hvn@cs.umu.se)
  *  Adam Hultgren (ens22ahn@cs.umu.se)
+ * 
+ * Based on earlier code by: Niclas Borlin (niclas@cs.umu.se)
+ * 
  *
  * Version information:
  *	v1.0 2024-04-24 first public version
@@ -160,7 +163,7 @@ int get_edges(FILE *fp)
  */
 bool find_path(graph *g, node *src, node *dest)
 {
-	// Always return true if the soruce
+	// Return true if the soruce
 	// and destination are equal
 	if (nodes_are_equal(src, dest))
 	{
@@ -331,7 +334,7 @@ int main(int argc, char *argv[])
 	// Run the interactive search function on the created graph
 	user_input_search(g);
 
-	// When done, close the file and
+	// When done, close the file
 	fclose(fp);
 	printf("Normal exit.\n");
 	return 0;
